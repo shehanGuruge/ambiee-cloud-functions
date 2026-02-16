@@ -1,5 +1,5 @@
 {
-  "name": "starter-template",
+  "name": "get-shares",
   "version": "1.0.0",
   "description": "",
   "main": "src/main.js",
@@ -8,9 +8,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "node-appwrite": "^14.1.0"
+    "node-appwrite": "14.1.0"
   },
   "devDependencies": {
-    "prettier": "^3.2.5"
+    "prettier": "3.2.5"
   }
 }
