@@ -47,8 +47,10 @@ jobs:
         working-directory: ${{ inputs.function_dir }}
         run: npm ci
 
-      - name: Install Appwrite CLI
-        run: npm install -g appwrite-cli
+      - name: Install official Appwrite CLI
+        run: |
+          curl -sL https://appwrite.io/cli/install.sh | bash
+          appwrite --version
 
       - name: Create deployment zip
         run: |
@@ -57,10 +59,7 @@ jobs:
             --exclude "*.git*" \
             --exclude ".env*" \
             --exclude "*.zip"
-          echo "✅ Zip created:"
-          ls -lh function.zip
-          echo "📦 Zip contents:"
-          unzip -l function.zip | head -30
+          echo "✅ Zip created: $(ls -lh function.zip)"
 
       - name: Deploy function
         env:
@@ -68,22 +67,16 @@ jobs:
           APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: |
-          cd ${{ inputs.function_dir }}
-          echo "📁 Current directory: $(pwd)"
-          echo "📄 Files here:"
-          ls -lh
-
           appwrite client \
             --endpoint "$APPWRITE_ENDPOINT" \
-            --project-id "$APPWRITE_PROJECT_ID" \
+            --projectId "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
           appwrite functions create-deployment \
-            --function-id="${{ inputs.function_id }}" \
+            --functionId="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="$(pwd)/function.zip" \
-            --activate=true \
-            --verbose
+            --code="${{ inputs.function_dir }}/function.zip" \
+            --activate=true
 
       - name: Summarize
         if: success()
