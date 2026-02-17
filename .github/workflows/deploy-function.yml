@@ -62,7 +62,7 @@ jobs:
             --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
-          appwrite functions createDeployment \
+          appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
             --code="." \
