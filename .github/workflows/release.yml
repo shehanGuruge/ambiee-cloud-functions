@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"   # triggers on v1.0.0, v1.2.3, etc.
+
+jobs:
+
+  deploy-create-share:
+    name: Create Share function
+    uses: ./.github/workflows/deploy-function.yml
+    with:
+      function_name: Create Share
+      function_id: YOUR_CREATE_SHARE_FUNCTION_ID    # ← replace with your Appwrite function ID
+      entrypoint: src/createShare/main.js
+    secrets:
+      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+
+  deploy-get-share:
+    name: Get Share function
+    uses: ./.github/workflows/deploy-function.yml
+    with:
+      function_name: Get Share
+      function_id: YOUR_GET_SHARE_FUNCTION_ID       # ← replace with your Appwrite function ID
+      entrypoint: src/getShare/main.js
+    secrets:
+      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
