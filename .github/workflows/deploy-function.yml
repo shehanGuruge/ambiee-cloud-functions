@@ -69,11 +69,11 @@ jobs:
         run: |
           appwrite client \
             --endpoint "$APPWRITE_ENDPOINT" \
-            --projectId "$APPWRITE_PROJECT_ID" \
+            --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
           appwrite functions create-deployment \
-            --functionId="${{ inputs.function_id }}" \
+            --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
             --code="${{ inputs.function_dir }}/function.zip" \
             --activate=true
