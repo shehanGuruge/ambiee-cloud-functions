@@ -1,0 +1,120 @@
+name: Deploy Appwrite Function
+
+on:
+  workflow_call:
+    inputs:
+      function_id:
+        description: Appwrite function ID to deploy
+        required: true
+        type: string
+      entrypoint:
+        description: Path to the function entrypoint file
+        required: true
+        type: string
+      function_name:
+        description: Human-readable function name (for logs)
+        required: true
+        type: string
+    secrets:
+      APPWRITE_ENDPOINT:
+        required: true
+      APPWRITE_PROJECT_ID:
+        required: true
+      APPWRITE_API_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.function_name }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create deployment zip
+        run: |
+          zip -r function.zip . \
+            --exclude "*.git*" \
+            --exclude "*.github*" \
+            --exclude "node_modules/*" \
+            --exclude "*.env*" \
+            --exclude "*.zip"
+
+      - name: Upload and deploy to Appwrite
+        env:
+          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          FUNCTION_ID: ${{ inputs.function_id }}
+          ENTRYPOINT: ${{ inputs.entrypoint }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Upload the deployment zip
+          DEPLOYMENT=$(curl -sf --request POST \
+            "$APPWRITE_ENDPOINT/v1/functions/$FUNCTION_ID/deployments" \
+            --header "x-appwrite-project: $APPWRITE_PROJECT_ID" \
+            --header "x-appwrite-key: $APPWRITE_API_KEY" \
+            --form "entrypoint=$ENTRYPOINT" \
+            --form "code=@function.zip" \
+            --form "activate=true")
+
+          DEPLOYMENT_ID=$(echo "$DEPLOYMENT" | jq -r '.$id')
+
+          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" = "null" ]; then
+            echo "❌ Failed to create deployment. Response:"
+            echo "$DEPLOYMENT"
+            exit 1
+          fi
+
+          echo "✅ Deployment created: $DEPLOYMENT_ID"
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+
+      - name: Wait for deployment to become active
+        env:
+          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          FUNCTION_ID: ${{ inputs.function_id }}
+        run: |
+          echo "⏳ Waiting for deployment to activate..."
+          for i in $(seq 1 12); do
+            sleep 5
+            STATUS=$(curl -sf --request GET \
+              "$APPWRITE_ENDPOINT/v1/functions/$FUNCTION_ID/deployments/$DEPLOYMENT_ID" \
+              --header "x-appwrite-project: $APPWRITE_PROJECT_ID" \
+              --header "x-appwrite-key: $APPWRITE_API_KEY" \
+              | jq -r '.status')
+
+            echo "  Status: $STATUS"
+
+            if [ "$STATUS" = "ready" ]; then
+              echo "✅ Deployment is live!"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "failed" ]; then
+              echo "❌ Deployment failed!"
+              exit 1
+            fi
+          done
+
+          echo "⚠️ Timed out waiting for deployment to become active"
+          exit 1
+
+      - name: Summarize
+        if: success()
+        run: |
+          echo "### ✅ ${{ inputs.function_name }} deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment ID:** \`${{ env.DEPLOYMENT_ID }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Entrypoint:** \`${{ inputs.entrypoint }}\`" >> $GITHUB_STEP_SUMMARY
