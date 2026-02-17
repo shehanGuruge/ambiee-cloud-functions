@@ -41,7 +41,6 @@ jobs:
         with:
           node-version: 21
           cache: npm
-          # Point cache to the lock file inside the function's own directory
           cache-dependency-path: ${{ inputs.function_dir }}/package-lock.json
 
       - name: Install dependencies
@@ -64,7 +63,8 @@ jobs:
           FUNCTION_ID: ${{ inputs.function_id }}
           ENTRYPOINT: ${{ inputs.entrypoint }}
         run: |
-          DEPLOYMENT=$(curl -sf --request POST \
+          # Use -s (silent) only — remove -f so we always get the response body on errors
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" --request POST \
             "$APPWRITE_ENDPOINT/v1/functions/$FUNCTION_ID/deployments" \
             --header "x-appwrite-project: $APPWRITE_PROJECT_ID" \
             --header "x-appwrite-key: $APPWRITE_API_KEY" \
@@ -72,11 +72,22 @@ jobs:
             --form "code=@function.zip" \
             --form "activate=true")
 
-          DEPLOYMENT_ID=$(echo "$DEPLOYMENT" | jq -r '.$id')
+          # Split body and status code (last line is the status)
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n 1)
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $HTTP_BODY"
+
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "❌ Appwrite returned $HTTP_STATUS"
+            exit 1
+          fi
+
+          DEPLOYMENT_ID=$(echo "$HTTP_BODY" | jq -r '.$id')
 
           if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" = "null" ]; then
-            echo "❌ Failed to create deployment. Response:"
-            echo "$DEPLOYMENT"
+            echo "❌ Could not parse deployment ID from response"
             exit 1
           fi
 
@@ -93,13 +104,17 @@ jobs:
           echo "⏳ Waiting for deployment to activate..."
           for i in $(seq 1 12); do
             sleep 5
-            STATUS=$(curl -sf --request GET \
+
+            POLL_RESPONSE=$(curl -s -w "\n%{http_code}" --request GET \
               "$APPWRITE_ENDPOINT/v1/functions/$FUNCTION_ID/deployments/$DEPLOYMENT_ID" \
               --header "x-appwrite-project: $APPWRITE_PROJECT_ID" \
-              --header "x-appwrite-key: $APPWRITE_API_KEY" \
-              | jq -r '.status')
+              --header "x-appwrite-key: $APPWRITE_API_KEY")
 
-            echo "  Status: $STATUS"
+            POLL_BODY=$(echo "$POLL_RESPONSE" | head -n -1)
+            POLL_STATUS=$(echo "$POLL_RESPONSE" | tail -n 1)
+            STATUS=$(echo "$POLL_BODY" | jq -r '.status')
+
+            echo "  HTTP $POLL_STATUS — Deployment status: $STATUS"
 
             if [ "$STATUS" = "ready" ]; then
               echo "✅ Deployment is live!"
@@ -107,7 +122,8 @@ jobs:
             fi
 
             if [ "$STATUS" = "failed" ]; then
-              echo "❌ Deployment failed!"
+              echo "❌ Deployment failed! Build log:"
+              echo "$POLL_BODY" | jq -r '.buildLogs // "No build logs available"'
               exit 1
             fi
           done
