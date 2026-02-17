@@ -12,7 +12,7 @@ jobs:
     uses: ./.github/workflows/deploy-function.yml
     with:
       function_name: Create Share
-      function_id: YOUR_CREATE_SHARE_FUNCTION_ID    # ← replace with your Appwrite function ID
+      function_id: 699409a9001382e4e9f2   # ← replace with your Appwrite function ID
       entrypoint: src/createShare/main.js
     secrets:
       APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/deploy-function.yml
     with:
       function_name: Get Share
-      function_id: YOUR_GET_SHARE_FUNCTION_ID       # ← replace with your Appwrite function ID
+      function_id: 69933e60002c3f6881d7       # ← replace with your Appwrite function ID
       entrypoint: src/getShare/main.js
     secrets:
       APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
