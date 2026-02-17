@@ -1,35 +1,81 @@
-import { Client, Users } from 'node-appwrite';
+import { Client, Query, TablesDB } from 'node-appwrite';
 
-// This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
-  // You can use the Appwrite SDK to interact with other services
-  // For this example, we're using the Users service
   const client = new Client()
     .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
+
+  if (req.method !== "POST") {
+    return res.json({ error: "Method Not Allowed" }, 405);
+  }
+
+  const code = req.bodyJson?.code;
+
+  if (!code || typeof code !== "string" || code.trim() === "") {
+    return res.json(
+      { error: "Bad Request", message: "Missing or invalid required parameter: code" },
+      400
+    );
+  }
 
   try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
+    const db = new TablesDB(client);
 
-  // The req object contains the request data
-  if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
-    return res.text("Pong");
-  }
+    const response = await db.listRows(
+      process.env.APPWRITE_DATABASE_ID,
+      process.env.APPWRITE_SHARES_TABLE_NAME,
+      [Query.equal("$id", code.trim())]
+    );
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
+    if (response.rows.length === 0) {
+      return res.json(
+        { error: "Not Found", message: `Share with code '${code}' does not exist` },
+        404
+      );
+    }
+
+    const share = response.rows[0];
+
+    // Parse the stringified tracks back into a proper array
+    let tracks;
+    try {
+      tracks = JSON.parse(share.tracks);
+    } catch {
+      error(`Failed to parse tracks for share: ${share.$id}`);
+      return res.json(
+        { error: "Internal Server Error", message: "Share data is corrupted" },
+        500
+      );
+    }
+
+    log(`Fetched share: ${share.$id} with ${tracks.length} track(s)`);
+
+    return res.json(
+      {
+        success: true,
+        data: {
+          id: share.$id,
+          tracks,
+        },
+      },
+      200
+    );
+  } catch (e) {
+    if (e?.code === 401) {
+      error(`Auth error: ${e.message}`);
+      return res.json({ error: "Unauthorized", message: "Invalid API credentials" }, 401);
+    }
+
+    if (e?.code === 403) {
+      error(`Permission error: ${e.message}`);
+      return res.json({ error: "Forbidden", message: "Insufficient permissions to access this resource" }, 403);
+    }
+
+    error(`Unhandled database error: ${e.message}`);
+    return res.json(
+      { error: "Internal Server Error", message: "An unexpected error occurred. Please try again later." },
+      500
+    );
+  }
 };
