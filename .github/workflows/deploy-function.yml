@@ -8,11 +8,15 @@ on:
         required: true
         type: string
       entrypoint:
-        description: Path to the function entrypoint file
+        description: Path to the function entrypoint file (relative to function_dir)
         required: true
         type: string
       function_name:
         description: Human-readable function name (for logs)
+        required: true
+        type: string
+      function_dir:
+        description: Path to the function folder e.g. functions/createShare
         required: true
         type: string
     secrets:
@@ -37,29 +41,29 @@ jobs:
         with:
           node-version: 21
           cache: npm
+          # Point cache to the lock file inside the function's own directory
+          cache-dependency-path: ${{ inputs.function_dir }}/package-lock.json
 
       - name: Install dependencies
+        working-directory: ${{ inputs.function_dir }}
         run: npm ci
 
       - name: Create deployment zip
+        working-directory: ${{ inputs.function_dir }}
         run: |
-          zip -r function.zip . \
+          zip -r ../../function.zip . \
             --exclude "*.git*" \
-            --exclude "*.github*" \
-            --exclude "node_modules/*" \
-            --exclude "*.env*" \
+            --exclude ".env*" \
             --exclude "*.zip"
 
-      - name: Upload and deploy to Appwrite
+      - name: Upload deployment to Appwrite
         env:
           APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
           APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
           FUNCTION_ID: ${{ inputs.function_id }}
           ENTRYPOINT: ${{ inputs.entrypoint }}
-          TAG: ${{ github.ref_name }}
         run: |
-          # Upload the deployment zip
           DEPLOYMENT=$(curl -sf --request POST \
             "$APPWRITE_ENDPOINT/v1/functions/$FUNCTION_ID/deployments" \
             --header "x-appwrite-project: $APPWRITE_PROJECT_ID" \
