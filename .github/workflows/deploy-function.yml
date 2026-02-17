@@ -50,6 +50,14 @@ jobs:
       - name: Install Appwrite CLI
         run: npm install -g appwrite-cli
 
+      - name: Create deployment zip
+        working-directory: ${{ inputs.function_dir }}
+        run: |
+          zip -r function.zip . \
+            --exclude "*.git*" \
+            --exclude ".env*" \
+            --exclude "*.zip"
+
       - name: Deploy function
         working-directory: ${{ inputs.function_dir }}
         env:
@@ -65,7 +73,7 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="." \
+            --code="function.zip" \
             --activate=true
 
       - name: Summarize
