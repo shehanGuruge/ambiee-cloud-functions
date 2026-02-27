@@ -60,6 +60,9 @@ jobs:
             --exclude ".env*" \
             --exclude "*.zip"
           echo "✅ Zip created: $(ls -lh function.zip)"
+      
+      - name: Check zip
+        run: ls -lh ${{ inputs.function_dir }}
 
       - name: Deploy function
         env:
@@ -71,12 +74,14 @@ jobs:
             --endpoint "$APPWRITE_ENDPOINT" \
             --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
+            --verbose
 
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
             --code="${{ inputs.function_dir }}/function.zip" \
             --activate=true
+            --verbose
 
       - name: Summarize
         if: success()
