@@ -1,14 +1,10 @@
 name: Release
 
-# on:
-#   push:
-#     tags:
-#       - "v*.*.*"   # triggers on v1.0.0, v1.2.3, etc.
 on:
   push:
-    branches:
-      - main
-      
+    tags:
+      - "v*.*.*"   # triggers on v1.0.0, v1.2.3, etc.
+
 jobs:
 
   deploy-create-share:
