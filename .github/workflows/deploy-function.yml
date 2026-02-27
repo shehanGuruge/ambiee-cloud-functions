@@ -83,7 +83,7 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="${{ github.workspace }}/${{ inputs.function_dir }}/function.tar.gz" \
+            --code=function.tar.gz \
             --activate=false \
             --verbose
 
