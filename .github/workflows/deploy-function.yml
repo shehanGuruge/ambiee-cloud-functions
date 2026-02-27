@@ -52,17 +52,17 @@ jobs:
           curl -sL https://appwrite.io/cli/install.sh | bash
           appwrite --version
 
-      - name: Create deployment zip
-        run: |
-          cd ${{ inputs.function_dir }}
-          zip -r function.zip . \
-            --exclude "*.git*" \
-            --exclude ".env*" \
-            --exclude "*.zip"
-          echo "✅ Zip created: $(ls -lh function.zip)"
+      # - name: Create deployment zip
+      #   run: |
+      #     cd ${{ inputs.function_dir }}
+      #     zip -r function.zip . \
+      #       --exclude "*.git*" \
+      #       --exclude ".env*" \
+      #       --exclude "*.zip"
+      #     echo "✅ Zip created: $(ls -lh function.zip)"
       
-      - name: Check zip
-        run: ls -lh ${{ inputs.function_dir }}
+      # - name: Check zip
+      #   run: ls -lh ${{ inputs.function_dir }}
 
       - name: Deploy function
         env:
@@ -70,7 +70,6 @@ jobs:
           APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: |
-          cd ${{ inputs.function_dir }}
           appwrite client \
             --endpoint "$APPWRITE_ENDPOINT" \
             --project-id "$APPWRITE_PROJECT_ID" \
@@ -79,8 +78,9 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="function.zip" \
-            --activate=true
+            --code="${{ inputs.function_dir }}" \
+            --activate=true \
+            --verbose
 
       - name: Summarize
         if: success()
