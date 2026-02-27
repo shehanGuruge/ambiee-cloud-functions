@@ -47,10 +47,12 @@ jobs:
         working-directory: ${{ inputs.function_dir }}
         run: npm ci
 
-      - name: Install official Appwrite CLI
-        run: |
-          curl -sL https://appwrite.io/cli/install.sh | bash
-          appwrite --version
+      - name: Install Appwrite CLI (stable)
+        run: npm install -g appwrite-cli@latest
+      # - name: Install official Appwrite CLI
+      #   run: |
+      #     curl -sL https://appwrite.io/cli/install.sh | bash
+      #     appwrite --version
 
       # - name: Create deployment zip
       #   run: |
