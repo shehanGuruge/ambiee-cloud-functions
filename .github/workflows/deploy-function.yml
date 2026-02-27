@@ -68,9 +68,6 @@ jobs:
           tar -czf function.tar.gz -C ${{ inputs.function_dir }} .
           ls -lh function.tar.gz
 
-      - name: Check zip
-        run: ls -lh ${{ inputs.function_dir }}
-
       - name: Deploy function via REST API
         env:
           APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
@@ -85,28 +82,28 @@ jobs:
             -F "entrypoint=${{ inputs.entrypoint }}" \
             -F "activate=true"
 
-      - name: Deploy function
-        env:
-          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
-          APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
-          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-        run: |
-          appwrite client \
-            --endpoint "$APPWRITE_ENDPOINT" \
-            --project-id "$APPWRITE_PROJECT_ID" \
-            --key "$APPWRITE_API_KEY"
+      # - name: Deploy function
+      #   env:
+      #     APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      #     APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+      #     APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      #   run: |
+      #     appwrite client \
+      #       --endpoint "$APPWRITE_ENDPOINT" \
+      #       --project-id "$APPWRITE_PROJECT_ID" \
+      #       --key "$APPWRITE_API_KEY"
 
-          cd ${{ inputs.function_dir }}
+      #     cd ${{ inputs.function_dir }}
 
-          pwd
-          ls -lah
+      #     pwd
+      #     ls -lah
 
-          appwrite functions create-deployment \
-            --function-id=${{ inputs.function_id }} \
-            --entrypoint=${{ inputs.entrypoint }} \
-            --code=. \
-            --activate=false \
-            --verbose
+      #     appwrite functions create-deployment \
+      #       --function-id=${{ inputs.function_id }} \
+      #       --entrypoint=${{ inputs.entrypoint }} \
+      #       --code=. \
+      #       --activate=false \
+      #       --verbose
 
       - name: Summarize
         if: success()
