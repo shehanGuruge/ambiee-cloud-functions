@@ -60,6 +60,12 @@ jobs:
             --exclude ".env*" \
             --exclude "*.zip"
           echo "✅ Zip created: $(ls -lh function.zip)"
+
+      - name: Create tar.gz package
+        run: |
+          cd ${{ inputs.function_dir }}
+          tar -czf function.tar.gz .
+          ls -lh function.tar.gz
       
       - name: Check zip
         run: ls -lh ${{ inputs.function_dir }}
@@ -78,7 +84,7 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="${{ github.workspace }}/${{ inputs.function_dir }}/function.zip" \
+            --code="${{ github.workspace }}/${{ inputs.function_dir }}/function.tar.gz" \
             --activate=false \
             --verbose
 
