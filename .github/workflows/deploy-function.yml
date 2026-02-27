@@ -52,14 +52,14 @@ jobs:
           curl -sL https://appwrite.io/cli/install.sh | bash
           appwrite --version
 
-      - name: Create deployment zip
-        run: |
-          cd ${{ inputs.function_dir }}
-          zip -r function.zip . \
-            --exclude "*.git*" \
-            --exclude ".env*" \
-            --exclude "*.zip"
-          echo "✅ Zip created: $(ls -lh function.zip)"
+      # - name: Create deployment zip
+      #   run: |
+      #     cd ${{ inputs.function_dir }}
+      #     zip -r function.zip . \
+      #       --exclude "*.git*" \
+      #       --exclude ".env*" \
+      #       --exclude "*.zip"
+      #     echo "✅ Zip created: $(ls -lh function.zip)"
 
       - name: Create tar.gz package
         run: |
