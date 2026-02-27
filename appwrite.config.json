@@ -7,7 +7,11 @@
             "name": "getShares",
             "runtime": "node-22",
             "specification": "s-0.5vcpu-512mb",
-            "execute": [],
+            "execute": [
+                "any",
+                "guests",
+                "users"
+            ],
             "events": [],
             "scopes": [
                 "databases.read",
@@ -51,7 +55,9 @@
             "runtime": "node-22",
             "specification": "s-0.5vcpu-512mb",
             "execute": [
-                "any"
+                "any",
+                "guests",
+                "users"
             ],
             "events": [],
             "scopes": [

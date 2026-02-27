@@ -81,7 +81,6 @@ export default async ({ req, res, log, error }) => {
         success: true,
         data: {
           id: row.$id,
-          tracks,
           createdAt: row.$createdAt,
         },
       },
