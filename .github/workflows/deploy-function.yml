@@ -63,8 +63,7 @@ jobs:
 
       - name: Create tar.gz package
         run: |
-          cd ${{ inputs.function_dir }}
-          tar -czf function.tar.gz .
+          tar -czf function.tar.gz -C ${{ inputs.function_dir }} .
           ls -lh function.tar.gz
       
       - name: Check zip
