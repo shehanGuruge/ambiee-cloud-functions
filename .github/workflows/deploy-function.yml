@@ -77,6 +77,7 @@ jobs:
           APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
         run: |
+          echo "$APPWRITE_ENDPOINT"
           curl -X POST "$APPWRITE_ENDPOINT/v1/functions/${{ inputs.function_id }}/deployments" \
             -H "X-Appwrite-Project: $APPWRITE_PROJECT_ID" \
             -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
