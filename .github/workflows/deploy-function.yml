@@ -82,10 +82,15 @@ jobs:
             --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
+          cd ${{ inputs.function_dir }}
+
+          pwd
+          ls -lah
+
           appwrite functions create-deployment \
-            --function-id="${{ inputs.function_id }}" \
-            --entrypoint="${{ inputs.entrypoint }}" \
-            --code=function.tar.gz \
+            --function-id=${{ inputs.function_id }} \
+            --entrypoint=${{ inputs.entrypoint }} \
+            --code=. \
             --activate=false \
             --verbose
 
