@@ -78,7 +78,7 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="${{ GITHUB_WORKSPACE }}/${{ inputs.function_dir }}" \
+            --code="${{ github.workspace }}/${{ inputs.function_dir }}" \
             --activate=false \
             --verbose
 
