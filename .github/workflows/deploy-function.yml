@@ -52,17 +52,17 @@ jobs:
           curl -sL https://appwrite.io/cli/install.sh | bash
           appwrite --version
 
-      # - name: Create deployment zip
-      #   run: |
-      #     cd ${{ inputs.function_dir }}
-      #     zip -r function.zip . \
-      #       --exclude "*.git*" \
-      #       --exclude ".env*" \
-      #       --exclude "*.zip"
-      #     echo "✅ Zip created: $(ls -lh function.zip)"
+      - name: Create deployment zip
+        run: |
+          cd ${{ inputs.function_dir }}
+          zip -r function.zip . \
+            --exclude "*.git*" \
+            --exclude ".env*" \
+            --exclude "*.zip"
+          echo "✅ Zip created: $(ls -lh function.zip)"
       
-      # - name: Check zip
-      #   run: ls -lh ${{ inputs.function_dir }}
+      - name: Check zip
+        run: ls -lh ${{ inputs.function_dir }}
 
       - name: Deploy function
         env:
@@ -78,8 +78,8 @@ jobs:
           appwrite functions create-deployment \
             --function-id="${{ inputs.function_id }}" \
             --entrypoint="${{ inputs.entrypoint }}" \
-            --code="./${{ inputs.function_dir }}" \
-            --activate=true \
+            --code="${GITHUB_WORKSPACE}/${{ inputs.function_dir }}" \
+            --activate=false \
             --verbose
 
       - name: Summarize
