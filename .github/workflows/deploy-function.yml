@@ -81,7 +81,6 @@ jobs:
             --entrypoint="${{ inputs.entrypoint }}" \
             --code="function.zip" \
             --activate=true
-            --verbose
 
       - name: Summarize
         if: success()
