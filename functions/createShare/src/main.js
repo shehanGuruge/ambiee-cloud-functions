@@ -86,7 +86,7 @@ export default async ({ req, res, log, error }) => {
     return badRequest('Missing or invalid parameter: tracks must be a non-empty array');
   }
 
-  const REQUIRED_TRACK_FIELDS = ['$id', 'trackUrl'];
+  const REQUIRED_TRACK_FIELDS = ['$id', 'fileId'];
   const ALLOWED_TRACK_FIELDS = [
     '$id', 'trackName', 'authorName', 'authorUrl', 'trackUrl',
     'thumbnail', 'licenseName', 'licenseUrl', 'volume',
