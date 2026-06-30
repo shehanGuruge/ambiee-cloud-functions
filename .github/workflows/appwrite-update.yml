@@ -1,1 +1,33 @@
+name: Scheduled Appwrite Update
 
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1. Install dependencies where the package.json lives
+      - name: Install dependencies
+        working-directory: functions/updateTrack
+        run: npm install
+
+      # 2. Run main.js from inside the src folder
+      - name: Run update script
+        working-directory: functions/updateTrack/src
+        env:
+          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: node main.js
