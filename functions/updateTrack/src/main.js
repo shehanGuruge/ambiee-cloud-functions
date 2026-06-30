@@ -10,7 +10,7 @@ async function toggleTrackName() {
 
   const databaseId = '68fb73660036712381fa';
   const collectionId = 'tracks';
-  const documentId = '6994ad5900251a63999d1'; 
+  const documentId = '6994ad5900251a6399d1'; 
 
   try {
     const currentDoc = await databases.getDocument(databaseId, collectionId, documentId);
