@@ -8,7 +8,7 @@ async function toggleTrackName() {
 
   const databases = new Databases(client);
 
-  const databaseId = 'ambiee';
+  const databaseId = '68fb73660036712381fa';
   const collectionId = 'tracks';
   const documentId = '6994ad5900251a63999d1'; 
 
